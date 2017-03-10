@@ -2,13 +2,22 @@
 //
 // Simple PHP proxy, based on http://benalman.com/projects/php-simple-proxy/
 //
-// Allowing any URL leads to "open proxy" behavior! Don't be lazy to set $URL_START for your service address!
-$URL_START = 'http://google.com/'; 
+// It is STRONGLY recommended to set $URL_START to your API server address!!!
+// Without it you will get an "open proxy" behavior allowing anybody to use your proxy to hide illegal activity!
+$URL_START = ''; 
 //
 // prepare URL:
-$url = $_GET['url'];
-if (!isset($url)) exit('ERROR: url not specified');
-$url = $URL_START . $url;
+$url = '';
+$url_parms = '';
+foreach ($_GET as $name => $value){
+  if ($name == 'url'){
+    $url = $URL_START . $value;
+  }else{
+    $url_parms .= '&' . $name . '=' . $value;
+  }
+}
+if ($url == '') exit('ERROR: url not specified');
+$url .= $url_parms;
 //
 // prepare request:
 $ch = curl_init($url);
@@ -21,7 +30,7 @@ curl_setopt( $ch, CURLOPT_HEADER, true);
 curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt( $ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 curl_setopt($ch, CURLOPT_HTTPHEADER,array("Expect:"));
-//curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:8888'); // uncomment to check local requests using Fiddler
+//curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:8888'); // uncomment this to check local requests using Fiddler
 //
 // perform request:
 $response = curl_exec($ch);
