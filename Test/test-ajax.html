@@ -16,49 +16,61 @@
   
     $().ready(function(){
       
-        $.ajax({
-            method: 'POST',
-            url: "http://projects/simple-php-proxy/Test/simple-php-proxy.php?url=Test/return-post.php",
-            data: {'key1': 'value1', 'key2': 'value2'}, 
-        })        
-        .done(function(data) {
-          var resume = 'ERROR';
-          data = removeSpaces(data);
-          if (data == 'Array([key1]=>value1[key2]=>value2)') resume = 'ok';
-          appendResult('POST: ' + data + ' - ' + resume);
-        })
-        .fail(function() {
-          appendResult('POST - failed');
-        });
-        
-        var url = 'http://projects/simple-php-proxy/Test/simple-php-proxy.php?url=Test/return-url.php?a=b&c=d&e=f';
-        url = url.replace(/&/g, '%26');
-        $.ajax({
-            method: 'GET',
-            url: url, //"http://projects/simple-php-proxy/Test/simple-php-proxy.php?url=Test/return-url.php?a=b%26c=d",  // '&' inside the "url" parm is replaced to '%26'!
-        })        
-        .done(function(data) {
-          var resume = 'ERROR';
-          if (data == 'projects/simple-php-proxy/Test/return-url.php?a=b&c=d&e=f') resume = 'ok';
-          appendResult('GET: ' + data + ' - ' + resume);
-        })
-        .fail(function() {
-          appendResult('GET - failed');
-        });
-        
-        function appendResult(text){
-          $(".result").append('<p>' + text + '</p>');
+      // ---------------------------
+      //        this_dir_url
+      // ---------------------------
+      var this_dir_url = window.location.href;
+      var p = this_dir_url.lastIndexOf('/');
+      if (p >= 0) this_dir_url = this_dir_url.substr(0, p + 1);
+    
+      // ---------------------------
+      //            get
+      // ---------------------------
+      $.get(
+          this_dir_url + "../simple-php-proxy.php?url=" + this_dir_url + "json-get-post.php?a=b&c=d"
+      )
+      .done(function(data) {
+        if (JSON.stringify(data) == '{"get":{"a":"b","c":"d"},"post":[]}'){
+          appendResult('GET: ok');
+        }else{
+          appendResult('GET: error: ' + JSON.stringify(data));
         }
-        
-        function removeSpaces(text){
-          return text.replace(/[\r\n ]/g, '');
+      })
+      .fail(function(jqXHR, textStatus, error) {
+        console.log("jqXHR:", jqXHR, "\r\n", "textStatus:", textStatus, "\r\n", "error:", error);
+        appendResult('GET - request failed');
+      });
+
+      // ---------------------------
+      //           post
+      // ---------------------------
+      $.ajax({
+          method: 'POST',
+          url: this_dir_url + "../simple-php-proxy.php?url=" + this_dir_url + "json-get-post.php",
+          data: {'a': 'b', 'c': 'd'}, 
+      })        
+      .done(function(data) {
+        if (JSON.stringify(data) == '{"get":[],"post":{"a":"b","c":"d"}}'){
+          appendResult('POST: ok');
+        }else{
+          appendResult('POST: error: ' + JSON.stringify(data));
         }
+      })
+      .fail(function(jqXHR, textStatus, error) {
+        console.log("jqXHR:", jqXHR, "\r\n", "textStatus:", textStatus, "\r\n", "error:", error);
+        appendResult('POST - request failed');
+      });        
+      
+      // ---------------------------
+      //           utils
+      // ---------------------------
+      function appendResult(text){
+        $(".result").append('<p>' + text + '</p>');
+      }
       
     });
   
   </script>
-  
-  
 
 </body>
 </html>
